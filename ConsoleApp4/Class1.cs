@@ -15,22 +15,24 @@ namespace ConsoleApp4
     public class Noeud
     {
         public int Id { get; }
-        public string Nom { get; }
         public List<Noeud> Relations { get; }
 
-        public Noeud(int id, string nom)
+        public Noeud(int id)
         {
             Id = id;
-            Nom = nom;
             Relations = new List<Noeud>();
         }
+
+        // Ajoute une relation si elle n'existe pas déjà
         public void AjouterRelation(Noeud autreNoeud)
         {
             if (!Relations.Contains(autreNoeud))
             {
                 Relations.Add(autreNoeud);
-                autreNoeud.Relations.Add(this); // Relation réciproque
             }
         }
     }
-}
+    }
+
+
+
