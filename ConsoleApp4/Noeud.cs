@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp4
 {
-    using System;
-    using System.Collections.Generic;
-
+    
     // Classe représentant un membre de l'association
 
 

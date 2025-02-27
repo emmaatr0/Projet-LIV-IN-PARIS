@@ -1,10 +1,11 @@
-﻿namespace ConsoleApp4
-{
+﻿namespace ConsoleApp4;
+    using System.Windows.Forms;
+
     public class Program
     {
         public static void Main(string[] args)
         {
-            string cheminFichier = "C:\\Users\\olivi\\Desktop\\soc-karate.mtx"; // Chemin du fichier
+            string cheminFichier = "C:\\Users\\olivi\\Desktop\\Semestre 2\\soc-karate.mtx"; // Chemin du fichier
 
             // Lire le fichier et extraire les informations
             var (taille, liens) = LireFichierGraphe(cheminFichier);
@@ -21,7 +22,37 @@
             // Afficher les représentations du graphe
             graphe.AfficherListeAdjacence();
             graphe.AfficherMatriceAdjacence();
-        }
+
+            // Lancer le parcours en largeur depuis un sommet donné : sommetDepart
+          
+            int sommetDepart = 1; 
+            graphe.ParcoursLargeur(sommetDepart);
+
+            // Lancer le parcours en profondeur depuis un sommet donné : sommetDepart
+           
+            graphe.ParcoursProfondeur(sommetDepart);
+            // Le graphe est t-il connexe ?
+            if (graphe.EstConnexe())
+            {
+                Console.WriteLine("Le graphe est connexe, en effet à partir d'un sommet de départ quelconque, tous les autres sommets du graphe on été explorées.");
+            }
+            else
+            {
+                Console.WriteLine("Le graphe n'est pas connexe, en effet à partir d'un sommet de départ quelconque, pas tous les autres sommets du graphe on été explorées.");
+            }
+            // le graphe contient un cylcle ? 
+            if (graphe.EstUnCycle(graphe.matriceAdjacence))
+            {
+                Console.WriteLine("Le graphe contient un cycle.");
+            }
+            else
+            {
+                Console.WriteLine("Le graphe est acyclique.");
+            }
+
+        graphe.VisualiserGraphe("C:\\Users\\olivi\\Desktop\\graphe.png");
+        Console.WriteLine("Le graphe a été visualisé et sauvegardé sous 'graphe.png'.");
+    }
 
         public static (int taille, List<(int, int)> liens) LireFichierGraphe(string cheminFichier)
         {
@@ -34,7 +65,7 @@
                 while ((ligne = reader.ReadLine()) != null)
                 {
                     // Ignorer les commentaires et les lignes vides
-                    if (ligne.StartsWith("%") || string.IsNullOrWhiteSpace(ligne))
+                    if (ligne.StartsWith("%") )
                     {
                         continue;
                     }
@@ -58,4 +89,4 @@
             return (taille, liens);
         }
     }
-}
+
