@@ -7,31 +7,31 @@
         {
             string cheminFichier = "C:\\Users\\olivi\\Desktop\\Semestre 2\\soc-karate.mtx"; // Chemin du fichier
 
-            // Lire le fichier et extraire les informations
+            /// Lire le fichier et extraire les informations
             var (taille, liens) = LireFichierGraphe(cheminFichier);
 
-            // Créer le graphe
+            /// Créer le graphe
             var graphe = new Graphe(taille);
 
-            // Ajouter les liens au graphe
+            /// Ajouter les liens au graphe
             foreach (var (id1, id2) in liens)
             {
                 graphe.AjouterLien(id1, id2);
             }
 
-            // Afficher les représentations du graphe
+            /// Afficher les représentations du graphe
             graphe.AfficherListeAdjacence();
             graphe.AfficherMatriceAdjacence();
 
-            // Lancer le parcours en largeur depuis un sommet donné : sommetDepart
+            /// Lancer le parcours en largeur depuis un sommet donné : sommetDepart
           
             int sommetDepart = 1; 
             graphe.ParcoursLargeur(sommetDepart);
 
-            // Lancer le parcours en profondeur depuis un sommet donné : sommetDepart
+            /// Lancer le parcours en profondeur depuis un sommet donné : sommetDepart
            
             graphe.ParcoursProfondeur(sommetDepart);
-            // Le graphe est t-il connexe ?
+            /// Le graphe est t-il connexe ?
             if (graphe.EstConnexe())
             {
                 Console.WriteLine("Le graphe est connexe, en effet à partir d'un sommet de départ quelconque, tous les autres sommets du graphe on été explorées.");
@@ -40,7 +40,7 @@
             {
                 Console.WriteLine("Le graphe n'est pas connexe, en effet à partir d'un sommet de départ quelconque, pas tous les autres sommets du graphe on été explorées.");
             }
-            // le graphe contient un cylcle ? 
+            /// le graphe contient un cylcle ? 
             if (graphe.EstUnCycle(graphe.matriceAdjacence))
             {
                 Console.WriteLine("Le graphe contient un cycle.");
@@ -64,21 +64,21 @@
                 string ligne;
                 while ((ligne = reader.ReadLine()) != null)
                 {
-                    // Ignorer les commentaires et les lignes vides
+                    /// Ignorer les commentaires et les lignes vides
                     if (ligne.StartsWith("%") )
                     {
                         continue;
                     }
 
-                    // Lire la ligne contenant la taille et le nombre de liens
+                    /// Lire la ligne contenant la taille et le nombre de liens
                     if (taille == 0)
                     {
                         var parts = ligne.Split(' ');
-                        taille = int.Parse(parts[0]); // La taille est le premier nombre
+                        taille = int.Parse(parts[0]); /// La taille est le premier nombre
                         continue;
                     }
 
-                    // Lire les paires de nœuds représentant les liens
+                    /// Lire les paires de nœuds représentant les liens
                     var ids = ligne.Split(' ');
                     int id1 = int.Parse(ids[0]);
                     int id2 = int.Parse(ids[1]);

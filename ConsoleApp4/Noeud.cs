@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 namespace ConsoleApp4
 {
     
-    // Classe représentant un membre de l'association
+    /// <summary>
+    /// Classe représentant un membre de l'association
+    /// </summary>
 
 
     public class Noeud
@@ -21,7 +23,10 @@ namespace ConsoleApp4
             Relations = new List<Noeud>();
         }
 
-        // Ajoute une relation si elle n'existe pas déjà
+        /// <summary>
+        /// Ajoute une relation si elle n'existe pas déjà
+        /// </summary>
+        /// <param name="autreNoeud"></param>
         public void AjouterRelation(Noeud autreNoeud)
         {
             if (!Relations.Contains(autreNoeud))
