@@ -24,8 +24,9 @@
             graphe.AfficherMatriceAdjacence();
 
             /// Lancer le parcours en largeur depuis un sommet donné : sommetDepart
-          
-            int sommetDepart = 1; 
+          Random random = new Random();
+        int nombreAleatoire = random.Next(1, 100);
+        int sommetDepart = nombreAleatoire ; 
             graphe.ParcoursLargeur(sommetDepart);
 
             /// Lancer le parcours en profondeur depuis un sommet donné : sommetDepart
