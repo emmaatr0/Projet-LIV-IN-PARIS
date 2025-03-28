@@ -284,9 +284,94 @@ namespace ConsoleApp4
             graphics.Dispose();
             bitmap.Dispose();
         }
+
+        // Algorithme de Dijkstra
+        public (Dictionary<T, int>, Dictionary<T, T>) Dijkstra(T noeudDepart)
+        {
+            // Initialisation
+            var distances = new Dictionary<T, int>();
+            var precedent = new Dictionary<T, T>();
+            var noeudsRestants = new HashSet<T>();
+
+            foreach (var noeud in listeAdjacence.Keys)
+            {
+                distances[noeud] = int.MaxValue;
+                precedent[noeud] = default(T); 
+                noeudsRestants.Add(noeud);
+            }
+
+            distances[noeudDepart] = 0;
+
+            while (noeudsRestants.Count > 0)
+            {
+                // Trouve le nœud avec la distance minimale
+                T noeudCourant = TrouverMin(noeudsRestants, distances);
+                if (noeudCourant == null)
+                {
+                    break; // Exit the loop if no valid node is found
+                }
+                noeudsRestants.Remove(noeudCourant);
+
+
+                // Mise à jour des distances des voisins
+                foreach (var lien in listeAdjacence[noeudCourant].Relations)
+                {
+                    T voisin = lien.Destination.Id;
+                    int cout = lien.Poids;
+                    if (noeudsRestants.Contains(voisin))
+                    {
+                        int nouvelleDistance = distances[noeudCourant] + cout;
+                        if (nouvelleDistance < distances[voisin])
+                        {
+                            distances[voisin] = nouvelleDistance;
+                            precedent[voisin] = noeudCourant;
+                        }
+                    }
+                }
+            }
+
+            return (distances, precedent);
+        }
+        // Trouve le nœud avec la distance minimale dans noeudsRestants
+        private T TrouverMin(HashSet<T> noeudsRestants, Dictionary<T, int> distances)
+        {
+            T noeudMin = default;
+            int distanceMin = int.MaxValue;
+
+            foreach (var noeud in noeudsRestants)
+            {
+                if (distances[noeud] < distanceMin)
+                {
+                    distanceMin = distances[noeud];
+                    noeudMin = noeud;
+                }
+            }
+
+            return noeudMin;
+        }
+
+        // Reconstruit le chemin le plus court
+        public (List<T>, int) ReconstruireChemin(T noeudDepart, T noeudDestination, Dictionary<T, T> precedent, Dictionary<T, int> distances)
+        {
+            List<T> chemin = new List<T>();
+            T etape = noeudDestination;
+            int tempsTotal = distances[noeudDestination];
+
+            while (etape != null)
+            {
+                chemin.Insert(0, etape);
+                if (etape.Equals(noeudDepart))
+                    break;
+                etape = precedent[etape];
+            }
+
+            return (chemin, tempsTotal);
+        }
     }
-
-
 }
+
+
+
+
 
 

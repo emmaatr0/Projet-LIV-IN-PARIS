@@ -95,21 +95,47 @@ public class Program
         //    }
 
 
+
+        //if (!File.Exists(cheminFichier))
+        //{
+        //    Console.WriteLine("Erreur : Le fichier Excel n'a pas été trouvé !");
+        //    return;
+        //}
+        //MetroGraph metroGraph = new MetroGraph();
+        //metroGraph.ChargerMetro(cheminFichier);
+        //metroGraph.AfficherGraphe();
+
+
+
+        //string cheminImage = "C:\\Users\\olivi\\Desktop\\graphe.png";
+        //metroGraph.VisualiserGraphe(cheminImage);
+        //Console.WriteLine($"Graphe du métro visualisé et sauvegardé sous {cheminImage}.");
+
         string cheminFichier = "C:\\Users\\olivi\\Desktop\\Projet Algortihme\\MetroParis.xlsx";
-        if (!File.Exists(cheminFichier))
-        {
-            Console.WriteLine("Erreur : Le fichier Excel n'a pas été trouvé !");
-            return;
-        }
-        MetroGraph metroGraph = new MetroGraph();
-        metroGraph.ChargerMetro(cheminFichier);
-        metroGraph.AfficherGraphe();
+        // Créer une instance du graphe de métro
+        MetroGraph grapheMetro = new MetroGraph();
 
+        // Charger les données du fichier Excel
        
+        grapheMetro.ChargerMetro(cheminFichier);
 
-        string cheminImage = "C:\\Users\\olivi\\Desktop\\graphe.png";
-        metroGraph.VisualiserGraphe(cheminImage);
-        Console.WriteLine($"Graphe du métro visualisé et sauvegardé sous {cheminImage}.");
+        // Nœud de départ et de destination
+        string stationDepart = "1"; // Par exemple, "Porte Maillot"
+        string stationDestination = "6"; // Par exemple, "Franklin D. Roosevelt"
+
+        // Exécuter l'algorithme de Dijkstra
+        var (distances, precedent) = grapheMetro.Dijkstra(stationDepart);
+
+        // Reconstruire le chemin le plus court et obtenir le temps de trajet
+        var (chemin, tempsTrajet) = grapheMetro.ReconstruireChemin(stationDepart, stationDestination, precedent, distances);
+
+        // Afficher le chemin le plus court et le temps de trajet
+        Console.WriteLine($"Le chemin le plus court de la station {stationDepart} à la station {stationDestination} est :");
+        foreach (var station in chemin)
+        {
+            Console.Write(station + " ");
+        }
+        Console.WriteLine($"\nTemps de trajet total : {tempsTrajet} minutes");
 
     }
 }
