@@ -3,39 +3,48 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ConsoleApp4;
 
 namespace ConsoleApp4
 {
-    
-    /// <summary>
-    /// Classe représentant un membre de l'association
-    /// </summary>
 
 
-    public class Noeud
+    public class Noeud<T> 
     {
-        public int Id { get; }
-        public List<Noeud> Relations { get; }
+        public T Id { get; }
+        public List<Lien<T>> Relations { get; }
 
-        public Noeud(int id)
+        public Noeud(T id)
         {
             Id = id;
-            Relations = new List<Noeud>();
+            Relations = new List<Lien<T>>();
         }
 
-        /// <summary>
-        /// Ajoute une relation si elle n'existe pas déjà
-        /// </summary>
-        /// <param name="autreNoeud"></param>
-        public void AjouterRelation(Noeud autreNoeud)
+        public void AjouterRelation(Noeud<T> autreNoeud, int poids = 1)
         {
-            if (!Relations.Contains(autreNoeud))
+            if (!Relations.Any(l => l.Destination.Equals(autreNoeud)))
             {
-                Relations.Add(autreNoeud);
+                Relations.Add(new Lien<T>(this, autreNoeud, poids));
             }
         }
     }
+
+    public class Lien<T>
+    {
+        public Noeud<T> Source { get; }
+        public Noeud<T> Destination { get; }
+        public int Poids { get; }
+
+        public Lien(Noeud<T> source, Noeud<T> destination, int poids)
+        {
+            Source = source;
+            Destination = destination;
+            Poids = poids;
+        }
+
+
     }
+}
 
 
 

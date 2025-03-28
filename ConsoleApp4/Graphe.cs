@@ -12,41 +12,62 @@ using System.Drawing.Imaging;
 namespace ConsoleApp4
 {
     /// Classe représentant le graphe
-    public class Graphe
-    {
-        private Dictionary<int, Noeud> listeAdjacence; /// Stocke les relations sous forme de liste
-        public int[,] matriceAdjacence; /// Stocke les relations sous forme de matrice
-        private int taille; /// Nombre total de membres
+    public class Graphe<T>
 
-        public Graphe(int taille)
+    {
+        public Dictionary<T, Noeud<T> >listeAdjacence; /// Stocke les relations sous forme de liste
+        public Dictionary<T, Dictionary<T, int>> matriceAdjacence; /// Stocke les relations sous forme de matrice
+        public List<Noeud<T>> ListeSommets { get; set; }
+
+
+        public Graphe()
         {
-            this.taille = taille; /// Correction ici
-            listeAdjacence = new Dictionary<int, Noeud>();
-            matriceAdjacence = new int[taille + 1, taille + 1]; /// +1 pour ignorer l'index 0
+            ListeSommets = new List<Noeud<T>>();
+            
+            listeAdjacence = new Dictionary<T, Noeud<T>>();
+            matriceAdjacence = new Dictionary<T, Dictionary<T, int>>(); /// +1 pour ignorer l'index 0
         }
 
         /// Ajoute un nœud au graphe s'il n'existe pas déjà
-        public void AjouterNoeud(int id)
+        public void AjouterNoeud(T id)
         {
             if (!listeAdjacence.ContainsKey(id))
             {
-                listeAdjacence[id] = new Noeud(id);
+                listeAdjacence[id] = new Noeud<T>(id);
+                matriceAdjacence[id] = new Dictionary<T, int>();
+
             }
         }
 
-        public void AjouterLien(int id1, int id2)
+        public void AjouterLien(T idSource, T idDestination, int poids = 1)
         {
-            AjouterNoeud(id1);
-            AjouterNoeud(id2);
+            // Ensure both nodes exist in the adjacency list
+            if (listeAdjacence.ContainsKey(idSource) && listeAdjacence.ContainsKey(idDestination))
+            {
+                // Add the relation to the adjacency list
+                listeAdjacence[idSource].AjouterRelation(listeAdjacence[idDestination], poids);
 
-            /// Ajouter les relations entre les nœuds
-            listeAdjacence[id1].AjouterRelation(listeAdjacence[id2]);
-            listeAdjacence[id2].AjouterRelation(listeAdjacence[id1]);
+                // Ensure the outer dictionary exists for idSource
+                if (!matriceAdjacence.ContainsKey(idSource))
+                {
+                    matriceAdjacence[idSource] = new Dictionary<T, int>();
+                }
 
-            /// Mettre à jour la matrice d'adjacence
-            matriceAdjacence[id1, id2] = 1;
-            matriceAdjacence[id2, id1] = 1;
+                // Ensure the inner dictionary exists for idDestination
+                if (!matriceAdjacence[idSource].ContainsKey(idDestination))
+                {
+                    matriceAdjacence[idSource][idDestination] = 0; // Initialize with a default value
+                }
+
+                // Set the weight for the edge
+                matriceAdjacence[idSource][idDestination] = poids;
+            }
+            else
+            {
+                throw new ArgumentException("Both idSource and idDestination must exist in the graph.");
+            }
         }
+
 
         public void AfficherListeAdjacence()
         {
@@ -56,7 +77,7 @@ namespace ConsoleApp4
                 Console.Write($"{noeud.Key}: ");
                 foreach (var voisin in noeud.Value.Relations)
                 {
-                    Console.Write($"{voisin.Id} "); /// Afficher l'identifiant du nœud
+                    Console.Write($"{voisin.Destination.Id} ");
                 }
                 Console.WriteLine();
             }
@@ -65,16 +86,17 @@ namespace ConsoleApp4
         public void AfficherMatriceAdjacence()
         {
             Console.WriteLine("Matrice d'adjacence:");
-            for (int i = 1; i <= taille; i++)
+            foreach (var ligne in matriceAdjacence)
             {
-                for (int j = 1; j <= taille; j++)
+                Console.Write(ligne.Key + " : ");
+                foreach (var colonne in matriceAdjacence)
                 {
-                    Console.Write(matriceAdjacence[i, j] + " ");
+                    Console.Write(matriceAdjacence[ligne.Key].ContainsKey(colonne.Key) ? matriceAdjacence[ligne.Key][colonne.Key] + " " : "0 ");
                 }
                 Console.WriteLine();
             }
         }
-        public void ParcoursLargeur(int sommetDepart)
+        public void ParcoursLargeur(T sommetDepart)
         {
             if (!listeAdjacence.ContainsKey(sommetDepart))
             {
@@ -82,32 +104,31 @@ namespace ConsoleApp4
                 return;
             }
 
-            var file = new Queue<Noeud>(); /// File pour gérer les niveaux
-            var visites = new List<int>(); ///Liste pour stocker les sommets visités
+            var file = new Queue<Noeud<T>>();
+            var visites = new HashSet<T>();
 
-            file.Enqueue(listeAdjacence[sommetDepart]); /// Ajouter le sommet de départ
-            visites.Add(sommetDepart); /// Marquer comme visité
+            file.Enqueue(listeAdjacence[sommetDepart]);
+            visites.Add(sommetDepart);
 
             Console.WriteLine($"Parcours en largeur depuis le sommet {sommetDepart}:");
 
             while (file.Count > 0)
             {
-                Noeud courant = file.Dequeue(); // Extraire le sommet en tête de file
-               
+                Noeud<T> courant = file.Dequeue();
+                Console.Write(courant.Id + " ");
 
-                foreach (Noeud voisin in courant.Relations) /// Parcourir les voisins
+                foreach (var lien in courant.Relations)
                 {
-                    if (!visites.Contains(voisin.Id))
+                    if (!visites.Contains(lien.Destination.Id))
                     {
-                        file.Enqueue(voisin); /// Ajouter à la file
-                        visites.Add(voisin.Id); /// Marquer comme visité
+                        file.Enqueue(lien.Destination);
+                        visites.Add(lien.Destination.Id);
                     }
                 }
             }
             Console.WriteLine();
-            Console.WriteLine("Ordre de visite des sommets pour le parcours en largeur est : " + string.Join(", ", visites));
         }
-        public void ParcoursProfondeur(int sommetDepart)
+        public void ParcoursProfondeur(T sommetDepart)
         {
             if (!listeAdjacence.ContainsKey(sommetDepart))
             {
@@ -115,105 +136,111 @@ namespace ConsoleApp4
                 return;
             }
 
-            var pile = new Stack<Noeud>(); /// Pile pour gérer les sommets à visiter
-            var visites = new List<int>(); /// Liste pour stocker les sommets visités
+            var pile = new Stack<Noeud<T>>();
+            var visites = new HashSet<T>();
 
-            pile.Push(listeAdjacence[sommetDepart]); /// Ajouter le sommet de départ
-            visites.Add(sommetDepart); /// Marquer comme visité
+            pile.Push(listeAdjacence[sommetDepart]);
+            visites.Add(sommetDepart);
 
             Console.WriteLine($"Parcours en profondeur depuis le sommet {sommetDepart}:");
 
             while (pile.Count > 0)
             {
-                Noeud courant = pile.Pop(); /// Extraire le sommet en tête de pile
-               
+                Noeud<T> courant = pile.Pop();
+                Console.Write(courant.Id + " ");
 
-                foreach (Noeud voisin in courant.Relations) /// Parcourir les voisins
+                foreach (var lien in courant.Relations)
                 {
-                    if (!visites.Contains(voisin.Id))
+                    if (!visites.Contains(lien.Destination.Id))
                     {
-                        pile.Push(voisin); /// Ajouter à la pile
-                        visites.Add(voisin.Id); /// Marquer comme visité
+                        pile.Push(lien.Destination);
+                        visites.Add(lien.Destination.Id);
                     }
                 }
             }
             Console.WriteLine();
-            Console.WriteLine("Ordre de visite des sommets pour le parcours en profondeur est : " + string.Join(", ", visites));
         }
-        public bool EstConnexe() /// par un parcours en profondeur 
+        public bool ExisteChemin(Noeud<T> sommetDepart, Noeud<T> sommetDestination)
+        {
+            var fileDePropagation = new Queue<Noeud<T>>();  // File pour la propagation BFS
+            var sommetsVisites = new HashSet<T>();  // Set pour marquer les sommets visités
+
+            fileDePropagation.Enqueue(sommetDepart);  // Enfiler le sommet de départ
+            sommetsVisites.Add(sommetDepart.Id);
+
+            while (fileDePropagation.Count > 0)
+            {
+                var sommetCourant = fileDePropagation.Dequeue();  // Défilement du sommet à explorer
+
+                // Exploration des voisins du sommet courant
+                foreach (var lien in sommetCourant.Relations)
+                {
+                    var voisin = lien.Destination;
+
+                    // Si le voisin n'a pas encore été visité, on l'ajoute à la file
+                    if (!sommetsVisites.Contains(voisin.Id))
+                    {
+                        if (voisin.Equals(sommetDestination))
+                        {
+                            return true;  // Si on atteint le sommet destination, retourner true
+                        }
+
+                        fileDePropagation.Enqueue(voisin);  // Ajouter le voisin à la file pour exploration
+                        sommetsVisites.Add(voisin.Id);  // Marquer ce voisin comme visité
+                    }
+                }
+            }
+
+            // Aucun chemin trouvé entre le sommet de départ et la destination
+            return false;
+        }
+
+        public bool EstUnCycle(List<Noeud<T>> listeSommets)
+        {
+            foreach (var sommet in listeSommets)
+            {
+                // Vérifie si un sommet est relié à lui-même via un chemin
+                if (ExisteChemin(sommet, sommet))
+                {
+                    return true;  // Cycle trouvé
+                }
+            }
+            return false;  // Aucun cycle trouvé
+        }
+
+        public bool EstConnexe()
         {
             if (listeAdjacence.Count == 0)
-                return false; /// Un graphe vide n'est pas connexe
+                return false; // Un graphe vide n'est pas connexe
 
-            var premierSommet = listeAdjacence.Keys.First(); /// Prendre un sommet quelconque
-            var visites = new List<int>();
-            var pile = new Stack<int>();
+            // Prendre un sommet quelconque, ici le premier de la liste
+            var premierSommet = listeAdjacence.Keys.First();
 
-            pile.Push(premierSommet);
+            // Liste des sommets visités et pile pour la recherche en profondeur
+            var visites = new HashSet<T>(); // Utilisation d'un HashSet pour optimiser la recherche
+            var pile = new Stack<Noeud<T>>();
+
+            // Commencer le parcours à partir du premier sommet
+            pile.Push(listeAdjacence[premierSommet]);
             visites.Add(premierSommet);
 
             while (pile.Count > 0)
             {
-                int sommet = pile.Pop(); /// Récupérer le sommet en haut de la pile
+                var noeudActuel = pile.Pop(); // Récupérer le sommet actuel
 
-                foreach (var voisin in listeAdjacence[sommet].Relations)
+                foreach (var lien in noeudActuel.Relations)
                 {
-                    if (!visites.Contains(voisin.Id))
+                    // Si le voisin n'a pas été visité, on l'ajoute à la pile et à la liste des visites
+                    if (!visites.Contains(lien.Destination.Id))
                     {
-                        visites.Add(voisin.Id);
-                        pile.Push(voisin.Id); /// Ajouter à la pile pour explorer ensuite
+                        visites.Add(lien.Destination.Id);
+                        pile.Push(lien.Destination); // Ajouter à la pile pour explorer ensuite
                     }
                 }
             }
 
-            /// Si tous les sommets ont été visités, le graphe est connexe
+            // Si tous les sommets ont été visités, le graphe est connexe
             return visites.Count == listeAdjacence.Count;
-        }
-
-        public bool ExisteChemin(int[,] matriceAdjacence, int sommetDepart, int sommetDestination)
-        {
-            int nombreSommets = matriceAdjacence.GetLength(0); /// Nombre total de sommets
-            var fileDePropagation = new Queue<int>();  /// File pour la propagation BFS
-            var sommetsVisites = new bool[nombreSommets];    /// Tableau pour marquer les sommets visités
-            fileDePropagation.Enqueue(sommetDepart);              /// Enfiler le sommet de départ
-
-            while (fileDePropagation.Count > 0)
-            {
-                int sommetCourant = fileDePropagation.Dequeue(); /// Défilement du sommet à explorer
-                sommetsVisites[sommetCourant] = true; /// Marquer le sommet comme visité
-
-                /// Exploration des voisins du sommet courant
-                for (int i = 0; i < nombreSommets; i++)
-                {
-                    if (matriceAdjacence[sommetCourant, i] > 0 && !sommetsVisites[i])
-                    {
-                        fileDePropagation.Enqueue(i);   /// Ajouter le voisin à la file pour exploration
-                        sommetsVisites[i] = true;  /// Marquer ce voisin comme visité
-                    }
-
-                    /// Si on atteint le sommet destination, retourner true
-                    if (matriceAdjacence[sommetCourant, i] > 0 && i == sommetDestination)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            /// Aucun chemin trouvé entre le sommet de départ et la destination
-            return false;
-        }
-        public bool EstUnCycle(int[,] matriceAdjacence)
-        {
-            int nombreSommets = matriceAdjacence.GetLength(0); /// Nombre total de sommets
-            for (int i = 0; i < nombreSommets; i++)
-            {
-                /// Vérifie si un sommet est relié à lui-même
-                if (ExisteChemin(matriceAdjacence, i, i))
-                {
-                    return true; /// Cycle trouvé
-                }
-            }
-            return false; /// Aucun cycle trouvé
         }
 
         public void VisualiserGraphe(string cheminFichier)
@@ -225,9 +252,8 @@ namespace ConsoleApp4
             graphics.Clear(Color.White);
 
             Random random = new Random();
-            Dictionary<int, Point> positions = new Dictionary<int, Point>();
+            Dictionary<T, Point> positions = new Dictionary<T, Point>();
 
-            /// Générer des positions aléatoires pour chaque noeud
             foreach (var noeud in listeAdjacence.Keys)
             {
                 int x = random.Next(50, largeur - 50);
@@ -235,19 +261,17 @@ namespace ConsoleApp4
                 positions[noeud] = new Point(x, y);
             }
 
-            /// Dessiner les liens
             Pen pen = new Pen(Color.Black, 2);
             foreach (var noeud in listeAdjacence)
             {
-                foreach (var voisin in noeud.Value.Relations)
+                foreach (var lien in noeud.Value.Relations)
                 {
                     Point p1 = positions[noeud.Key];
-                    Point p2 = positions[voisin.Id];
+                    Point p2 = positions[lien.Destination.Id];
                     graphics.DrawLine(pen, p1, p2);
                 }
             }
 
-            /// Dessiner les noeuds
             Brush brush = new SolidBrush(Color.Red);
             foreach (var noeud in listeAdjacence.Keys)
             {
@@ -261,6 +285,8 @@ namespace ConsoleApp4
             bitmap.Dispose();
         }
     }
+
+
 }
 
 
